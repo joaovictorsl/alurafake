@@ -1,14 +1,14 @@
 package br.com.alura.AluraFake.task;
 
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.Arguments;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.stream.Stream;
 import java.util.Arrays;
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,15 +17,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.alura.AluraFake.course.Course;
-import br.com.alura.AluraFake.course.CourseRepository;
 import br.com.alura.AluraFake.course.Status;
+import br.com.alura.AluraFake.util.exceptions.ConflictException;
+import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
+import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
+import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
 
 import org.springframework.http.MediaType;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import org.junit.jupiter.api.Test;
 
 @WebMvcTest(TaskController.class)
 public class TaskControllerTest {
@@ -34,10 +34,7 @@ public class TaskControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private TaskRepository taskRepository;
-
-    @MockBean
-    private CourseRepository courseRepository;
+    private TaskUseCase taskUseCase;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -140,48 +137,38 @@ public class TaskControllerTest {
     }
 
     @Test
-    public void newOpenTextTask__should_return_bad_request_when_course_does_not_exist() throws Exception {
+    public void newOpenTextTask__should_return_not_found_when_course_does_not_exist() throws Exception {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
-        when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.empty());
+        when(taskUseCase.createOpenTextTask(any())).thenThrow(new EntityNotFoundException("exception"));
         
         mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field").value("courseId"))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
     
     @Test
-    public void newOpenTextTask__should_return_conflict_when_statement_exists() throws Exception {
+    public void newOpenTextTask__should_return_conflict_when_statement_is_duplicated() throws Exception {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
-        Course course = mock(Course.class);
-        when(course.getId()).thenReturn(1L);
-        when(course.getStatus()).thenReturn(Status.BUILDING);
-        when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
-        when(taskRepository.existsByStatementAndCourseId(dto.getStatement(), dto.getCourseId())).thenReturn(true);
+        when(taskUseCase.createOpenTextTask(any())).thenThrow(new ConflictException("exception"));
         
         mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.field").value("statement"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test
     public void newOpenTextTask__should_return_unprocessable_entity_when_course_is_not_in_building_status() throws Exception {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
-        Course course = mock(Course.class);
-        when(course.getId()).thenReturn(1L);
-        when(course.getStatus()).thenReturn(Status.PUBLISHED);
-        when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
+        when(taskUseCase.createOpenTextTask(any())).thenThrow(new InvalidStateException("exception"));
         
         mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.field").value("courseId"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
     
@@ -189,14 +176,17 @@ public class TaskControllerTest {
     public void newOpenTextTask__should_return_created_when_successful() throws Exception {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
         Course course = mock(Course.class);
-        when(course.getId()).thenReturn(1L);
-        when(course.getStatus()).thenReturn(Status.BUILDING);
-        when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
-        when(taskRepository.existsByStatementAndCourseId(dto.getStatement(), dto.getCourseId())).thenReturn(false);
+        Task task = new Task("valid statement", 1, course, Type.OPEN_TEXT);
+        task.setId(1L);
+        
+        when(taskUseCase.createOpenTextTask(any())).thenReturn(task);
         
         mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.statement").value("valid statement"))
+                .andExpect(jsonPath("$.order").value(1));
     }
 }
