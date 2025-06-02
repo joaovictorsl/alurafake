@@ -60,6 +60,10 @@ public class Course {
         return status;
     }
 
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
     public LocalDateTime getPublishedAt() {
         return publishedAt;
     }
