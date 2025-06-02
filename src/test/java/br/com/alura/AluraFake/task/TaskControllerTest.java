@@ -12,10 +12,12 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.alura.AluraFake.config.TestSecurityConfig;
 import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.util.exceptions.ConflictException;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TaskController.class)
+@Import(TestSecurityConfig.class)
 public class TaskControllerTest {
 
     @Autowired
