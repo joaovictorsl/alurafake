@@ -1,189 +1,190 @@
-# Case Tecnico Alura
-Seja bem-vindo ao teste para desenvolvedor Java Júnior da Alura. Neste
-desafio, simulamos uma parte do nosso domínio para que você possa demonstrar seus conhecimentos. 
-Não há respostas certas ou erradas, nosso objetivo é avaliar como você aplica lógica e 
-conceitos de orientação a objetos para solucionar problemas.
+# AluraFake API
 
-## Requisitos
+This project is a Spring Boot application that simulates a part of Alura's domain, focusing on user and course management, and interactive tasks.
 
-- Utilizar java 18+
-- Utilizar Spring boot
-- Utilizar Spring data JPA
-- Utilizar mysql
-- utilizar criação de tabelas manuais ([flyway](https://www.baeldung.com/database-migrations-with-flyway))
+## Technologies Used
 
-## Orientações
+*   Java 18+
+*   Spring Boot
+*   Spring Data JPA
+*   MySQL
+*   Flyway for database migrations
 
-1. Suba o templete incial do projeto no seu github e deixe o repositório público(Seus commits serão avaliados).
-2. Abra o projeto na IDE de sua preferência.
-3. requisitos estão em português, mas lembre-se de no código escrever tudo em inglês.
-4. bônus não é obrigatório e não possui ordem, então você pode realizar apenas um dos que
-   são citados lá, de acordo com sua preferência.
+## Getting Started
 
-## Desafio
+### Prerequisites
 
-Já disponibilizamos um projeto base como ponto de partida, no qual as tecnologias exigidas já estão configuradas. 
-Algumas lógicas relacionadas às entidades usuário e curso já estão implementadas, 
-e podem ser utilizadas como orientação para a resolução das questões.
+Before you begin, ensure you have the following installed:
 
-**Importante:** Não se preocupe com a parte visual, toda a interação devem ser feitas
-por API.
+*   **Java Development Kit (JDK) 18 or higher**: You can download it from [Oracle JDK](https://www.oracle.com/java/technologies/javase-jdk18-downloads.html) or use OpenJDK.
+*   **Maven**: For dependency management and building the project. Download from [Apache Maven](https://maven.apache.org/download.cgi).
+*   **MySQL Server**: The application uses MySQL as its database. Ensure you have a MySQL server running.
+*   **Docker (Optional but Recommended)**: For easily setting up a MySQL database.
 
-### Questão 1 — Modelagem de Atividades
+### Database Setup with Docker (Recommended)
 
-Na Alura, os cursos possuem **atividades interativas** que ajudam no processo de aprendizado.  
-Elas podem ser de diferentes formatos, cada uma com suas regras específicas.
+You can quickly set up a MySQL database using Docker.
 
-Você deve implementar a modelagem dessas atividades, de acordo com os requisitos abaixo.  
-Os esboços dos endpoints já estão criados — sua tarefa será **implementar a lógica completa** para cada tipo de atividade.
+1.  **Run MySQL container**:
+    ```bash
+    docker compose up -d
+    ```
+    This command will:
+    *   Create a container named `mysql`.
+    *   Set the root password to `rootpassword`.
+    *   Create a database named `alurafake`.
+    *   Map port `3306` of your host to port `3306` of the container.
 
-##### Regras gerais
-- O enunciado (`statement`) deve ter no mínimo 4 e no máximo 255 caracteres.
-- O curso não pode ter duas questões com o mesmo enunciado
-- A ordem deve ser um número inteiro positivo.
-- Um curso só pode receber atividades se seu status for `BULDING`.
+### Project Configuration
 
-#### Tipos de atividade
+1.  **Clone the repository**:
+    ```bash
+    git clone git@github.com:joaovictorsl/alurafake.git
+    cd alurafake
+    ```
 
-##### 1.1 — Atividade de Resposta Aberta
+2.  **Database Connection**:
+    The application expects a MySQL database named `alurafake` accessible at `localhost:3306`.
+    You can configure your database connection in `src/main/resources/application.properties`.
 
-**Endpoint:** `/task/new/opentext`
+### Running the Application
+
+To run the Spring Boot application, navigate to the project root directory and execute:
+
+1.  **Make the `mvnw` script executable (if not already done)**:
+    ```bash
+    chmod +x ./mvnw
+    ```
+
+2.  **Run the application**:
+    ```bash
+    make run
+    ```
+
+The application will start on `http://localhost:8080`.
+
+## Testing
+
+The project includes unit and integration tests. To run all tests, use:
+
 ```bash
-curl -w "%{http_code}\n" -X POST http://localhost:8080/task/new/opentext \
+make test
+```
+
+## API Endpoints (cURL Examples)
+
+Here are some example `curl` commands to interact with the API. The base URL for all endpoints is `http://localhost:8080`.
+
+### User Endpoints
+
+#### Create a new User
+
+```bash
+curl -X POST http://localhost:8080/user/new \
   -H "Content-Type: application/json" \
   -d '{
-        "courseId": 42,
-        "statement": "O que aprendemos na aula de hoje?",
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "role": "INSTRUCTOR",
+        "password": "123456"
+      }'
+```
+
+#### Get all Users
+
+```bash
+curl -u john.doe@example.com:123456 -X GET http://localhost:8080/user/all \
+  -H "Content-Type: application/json"
+```
+
+### Course Endpoints
+
+#### Create a new Course
+
+```bash
+curl -u john.doe@example.com:123456 -X POST http://localhost:8080/course/new \
+  -H "Content-Type: application/json" \
+  -d '{
+        "title": "Spring Boot Basics",
+        "description": "Aprenda Spring Boot na Alura",
+        "emailInstructor": "john.doe@example.com"
+      }'
+```
+
+#### Get all Courses
+
+```bash
+curl -u john.doe@example.com:123456 -X GET http://localhost:8080/course/all
+```
+
+#### Publish a Course
+
+```bash
+curl -u john.doe@example.com:123456 -X POST http://localhost:8080/course/{id}/publish
+```
+
+### Task Endpoints
+
+#### Create an Open Text Task
+
+```bash
+curl -u john.doe@example.com:123456 -X POST http://localhost:8080/task/new/opentext \
+  -H "Content-Type: application/json" \
+  -d '{
+        "courseId": 1,
+        "statement": "What did you learn today?",
         "order": 1
       }'
- ```
+```
 
-#### 1.2 — Atividade de alternativa única
+#### Create a Single Choice Task
 
-**Endpoint:** `/task/new/singlechoice`
 ```bash
-curl -w "%{http_code}\n" -X POST http://localhost:8080/task/new/singlechoice \
+curl -u john.doe@example.com:123456 -X POST http://localhost:8080/task/new/singlechoice \
   -H "Content-Type: application/json" \
   -d '{
-        "courseId": 42,
-        "statement": "O que aprendemos hoje?",
+        "courseId": 1,
+        "statement": "Which of these is a programming language?",
         "order": 2,
         "options": [
             {
                 "option": "Java",
                 "isCorrect": true
             },
+            {
+                "option": "HTML",
+                "isCorrect": false
+            },
+            {
+                "option": "CSS",
+                "isCorrect": false
+            }
+        ]
+      }'
+```
+
+#### Create a Multiple Choice Task
+
+```bash
+curl -u john.doe@example.com:123456 -X POST http://localhost:8080/task/new/multiplechoice \
+  -H "Content-Type: application/json" \
+  -d '{
+        "courseId": 1,
+        "statement": "Which of these are programming languages?",
+        "order": 3,
+        "options": [
             {
                 "option": "Python",
-                "isCorrect": false
-            },
-            {
-                "option": "Ruby",
-                "isCorrect": false
-            }
-        ]
-      }'
- ```
-
-##### Regras
-- A atividade deve ter no minimo 2 e no máximo 5 alternativas.
-- A atividade deve ter uma única alternativa correta.
-- As alternativas devem ter no mínimo 4 e no máximo 80 caracteres.
-- As alternativas não podem ser iguais entre si.
-- As alternativas não podem ser iguais ao enunciado da atividade.
-
-##### 1.3 — Atividade de múltipla escolha
-
-**Endpoint:** `/task/new/multiplechoice`
-```bash
-curl -w "%{http_code}\n" -X POST http://localhost:8080/task/new/singlechoice \
-  -H "Content-Type: application/json" \
-  -d '{
-        "courseId": 42,
-        "statement": "O que aprendemos hoje?",
-        "order": 2,
-        "options": [
-            {
-                "option": "Java",
                 "isCorrect": true
             },
             {
-                "option": "Spring",
-                "isCorrect": true
+                "option": "SQL",
+                "isCorrect": false
             },
             {
-                "option": "Ruby",
-                "isCorrect": false
+                "option": "JavaScript",
+                "isCorrect": true
             }
         ]
       }'
- ```
-
-##### Regras
-- A atividade deve ter no minimo 3 e no máximo 5 alternativas.
-- A atividade deve ter duas ou mais alternativas corretas, e ao menos uma alternativa incorreta.
-- As alternativas devem ter no mínimo 4 e no máximo 80 caracteres.
-- As alternativas não podem ser iguais entre si.
-- As alternativas não podem ser iguais ao enunciado da atividade.
-
-#### 👉👉Importante👈👈
-Caso uma nova atividade seja adicionada a um curso com uma ordem que já está em uso, todas as atividades com aquela ordem ou superiores devem ser deslocadas uma posição para frente, garantindo que cada atividade tenha uma ordem única e sequencial.
 ```
-Exemplo:
-Se o curso possui as seguintes atividades:
-Ordem 1 – Atividade A
-Ordem 2 – Atividade B
-Ordem 3 – Atividade C
-
-E for adicionada uma nova com ordem 2, a lista será reorganizada assim:
-
-Ordem 1 – Atividade A
-Ordem 2 – Nova Atividade
-Ordem 3 – Atividade B (foi deslocada)
-Ordem 4 – Atividade C (foi deslocada)
-
-Validação de sequência:
-A ordem das atividades deve ser contínua, sem saltos. Ou seja, 
-não é permitido adicionar uma atividade com ordem 4 se ainda não existem atividades com ordens 3 (ou anteriores).
-
-Exemplo inválido:
-Se o curso tem:
-
-Ordem 1 – Atividade A
-Ordem 2 – Atividade B
-
-E uma nova atividade tenta ser inserida com ordem 4, o sistema deve lançar um erro informando que a sequência está incorreta.
-
-```
-
-### Questão 2 — Publicação de Cursos
-
-Para publicar um curso, ele deve:
-
-- Conter ao menos uma atividade de cada tipo.
-- Ter atividades com `order` em sequência contínua (ex: 1, 2, 3...).
-- O curso só pode ser publicado se o status for `BUILDING`.
-- Ter o `status` atualizado para `PUBLISHED` e `publishedAt` com a data atual.
-
-Implemente o endpoint `/course/{id}/publish` validando essas regras antes da publicação.
-
-Exemplo de requisição:
-```bash
-curl -w "%{http_code}\n" -X POST http://localhost:8080/course/42/publish
-```
-
-### Bônus (não obrigatório)
-
-- Configure o Spring Security para proteger os endpoints de criação de atividades e criação/publicação de cursos. 
-  O acesso deve ser restrito a usuários com a role `INSTRUCTOR`, os demais endpoints de listagens podem ser acessados por qualquer usuário, desde que estejam autenticados.
-
-## Considerações finais
-
-- A avaliação do case será realizada exclusivamente com base nos requisitos e na forma como você utiliza **lógica**,
-**orientação a objetos** e **testes**. Qualquer tecnologia fora do escopo, como Swagger, Docker, ou aspectos visuais, 
-  não será considerada como um diferencial.
-- Testes são obrigatórios e serão avaliados como requisito.
-- Caso você tenha alguma dúvida sobre a descrição das questões, faça anotações no código e siga o que considerar mais adequado.
-- Outros candidatos estão concorrendo à mesma vaga, e códigos muito semelhantes resultarão na anulação do case.
-- Utilize ferramentas de IA, mas tenha cautela com o código gerado automaticamente. Caso avance para a próxima etapa, 
-a entrevista síncrona será baseada no código que você produziu.
