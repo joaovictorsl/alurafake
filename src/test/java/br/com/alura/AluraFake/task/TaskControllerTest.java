@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.course.CourseRepository;
+import br.com.alura.AluraFake.course.Status;
 
 import org.springframework.http.MediaType;
 import static org.mockito.Mockito.mock;
@@ -156,6 +157,7 @@ public class TaskControllerTest {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
         Course course = mock(Course.class);
         when(course.getId()).thenReturn(1L);
+        when(course.getStatus()).thenReturn(Status.BUILDING);
         when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
         when(taskRepository.existsByStatementAndCourseId(dto.getStatement(), dto.getCourseId())).thenReturn(true);
         
@@ -166,12 +168,29 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.field").value("statement"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
+
+    @Test
+    public void newOpenTextTask__should_return_unprocessable_entity_when_course_is_not_in_building_status() throws Exception {
+        NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
+        Course course = mock(Course.class);
+        when(course.getId()).thenReturn(1L);
+        when(course.getStatus()).thenReturn(Status.PUBLISHED);
+        when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.field").value("courseId"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
     
     @Test
     public void newOpenTextTask__should_return_created_when_successful() throws Exception {
         NewOpenTextTaskDTO dto = new NewOpenTextTaskDTO(1L, "valid statement", 1);
         Course course = mock(Course.class);
         when(course.getId()).thenReturn(1L);
+        when(course.getStatus()).thenReturn(Status.BUILDING);
         when(courseRepository.findById(dto.getCourseId())).thenReturn(Optional.of(course));
         when(taskRepository.existsByStatementAndCourseId(dto.getStatement(), dto.getCourseId())).thenReturn(false);
         

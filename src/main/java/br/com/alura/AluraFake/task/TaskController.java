@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.alura.AluraFake.course.Course;
 import br.com.alura.AluraFake.course.CourseRepository;
+import br.com.alura.AluraFake.course.Status;
 import br.com.alura.AluraFake.util.ErrorItemDTO;
 import jakarta.validation.Valid;
 
@@ -32,6 +33,9 @@ public class TaskController {
         if (course.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorItemDTO("courseId", "Curso não encontrado"));
+        } else if (course.get().getStatus() != Status.BUILDING) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(new ErrorItemDTO("courseId", "Curso não está em construção"));
         }
 
         if (taskRepository.existsByStatementAndCourseId(newOpenTextTaskDTO.getStatement(), course.get().getId())) {
