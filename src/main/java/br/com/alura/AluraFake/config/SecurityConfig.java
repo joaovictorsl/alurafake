@@ -20,6 +20,8 @@ public class SecurityConfig {
                 .requestMatchers("/task/new/**").hasRole("INSTRUCTOR")
                 // Course creation and publication (INSTRUCTOR only)
                 .requestMatchers("/course/new", "/course/*/publish").hasRole("INSTRUCTOR")
+                // User creation (anyone)
+                .requestMatchers("/user/new").anonymous()
                 // All other endpoints: any authenticated user
                 .anyRequest().authenticated()
             )

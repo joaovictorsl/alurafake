@@ -33,7 +33,7 @@ public class DataSeeder implements CommandLineRunner {
         if (userRepository.count() == 0) {
             User caio = new User("Caio", "caio@alura.com.br", Role.STUDENT);
             User paulo = new User("Paulo", "paulo@alura.com.br", Role.INSTRUCTOR);
-            User joao = new User("João", "joao@alura.com.br", Role.INSTRUCTOR, "password");
+            User joao = new User("João", "joao@alura.com.br", Role.INSTRUCTOR, "123456");
             userRepository.saveAll(Arrays.asList(caio, paulo, joao));
             courseRepository.save(new Course("Java", "Aprenda Java com Alura", paulo));
         }

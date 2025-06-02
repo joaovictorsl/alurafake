@@ -12,10 +12,10 @@ public class TaskOption {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
-    @Column(nullable = false)
+    @Column(name = "`option`", nullable = false)
     private String option;
 
-    @Column(nullable = false)
+    @Column(name = "`is_correct`", nullable = false)
     private boolean isCorrect;
 
     public Long getId() {
