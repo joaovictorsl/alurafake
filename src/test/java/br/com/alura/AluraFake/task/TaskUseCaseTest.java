@@ -6,9 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.alura.AluraFake.course.Course;
-import br.com.alura.AluraFake.course.CourseRepository;
-import br.com.alura.AluraFake.course.Status;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.entity.Status;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
 import br.com.alura.AluraFake.util.exceptions.ConflictException;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
@@ -24,7 +24,16 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Arrays;
-import br.com.alura.AluraFake.task.OptionDTO;
+
+import br.com.alura.AluraFake.task.dto.NewMultipleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewOpenTextTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewSingleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.OptionDTO;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.entity.Type;
+import br.com.alura.AluraFake.task.repository.TaskOptionRepository;
+import br.com.alura.AluraFake.task.repository.TaskRepository;
+import br.com.alura.AluraFake.task.usecase.TaskUseCaseImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskUseCaseTest {
@@ -39,7 +48,7 @@ public class TaskUseCaseTest {
     private CourseRepository courseRepository;
 
     @InjectMocks
-    private TaskUseCase taskUseCase;
+    private TaskUseCaseImpl taskUseCase;
 
     @Test
     public void createOpenTextTask_should_throw_when_course_does_not_exist() {

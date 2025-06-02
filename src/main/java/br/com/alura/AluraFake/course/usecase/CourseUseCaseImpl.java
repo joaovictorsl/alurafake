@@ -1,8 +1,14 @@
-package br.com.alura.AluraFake.course;
+package br.com.alura.AluraFake.course.usecase;
 
-import br.com.alura.AluraFake.task.TaskRepository;
-import br.com.alura.AluraFake.user.User;
-import br.com.alura.AluraFake.user.UserRepository;
+import br.com.alura.AluraFake.course.dto.CourseListItemDTO;
+import br.com.alura.AluraFake.course.dto.NewCourseDTO;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.entity.Status;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
+import br.com.alura.AluraFake.task.repository.TaskRepository;
+import br.com.alura.AluraFake.user.entity.User;
+import br.com.alura.AluraFake.user.repository.UserRepository;
+
 import java.util.Optional;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
@@ -14,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 @Service
-public class CourseUseCase {
+public class CourseUseCaseImpl implements CourseUseCase {
     private final CourseRepository courseRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
-    public CourseUseCase(CourseRepository courseRepository, TaskRepository taskRepository, UserRepository userRepository) {
+    public CourseUseCaseImpl(CourseRepository courseRepository, TaskRepository taskRepository, UserRepository userRepository) {
         this.courseRepository = courseRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;

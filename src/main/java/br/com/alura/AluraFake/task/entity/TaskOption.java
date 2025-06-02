@@ -1,4 +1,4 @@
-package br.com.alura.AluraFake.task;
+package br.com.alura.AluraFake.task.entity;
 
 import jakarta.persistence.*;
 

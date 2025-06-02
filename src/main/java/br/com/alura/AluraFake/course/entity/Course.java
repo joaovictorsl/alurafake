@@ -1,8 +1,9 @@
-package br.com.alura.AluraFake.course;
+package br.com.alura.AluraFake.course.entity;
 
-import br.com.alura.AluraFake.user.User;
 import jakarta.persistence.*;
 import org.springframework.util.Assert;
+
+import br.com.alura.AluraFake.user.entity.User;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package br.com.alura.AluraFake.task;
+package br.com.alura.AluraFake.task.dto;
 
 import org.hibernate.validator.constraints.Length;
 

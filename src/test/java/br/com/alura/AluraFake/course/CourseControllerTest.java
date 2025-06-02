@@ -1,7 +1,14 @@
 package br.com.alura.AluraFake.course;
 
 import br.com.alura.AluraFake.config.TestSecurityConfig;
+import br.com.alura.AluraFake.course.controller.CourseController;
+import br.com.alura.AluraFake.course.dto.CourseListItemDTO;
+import br.com.alura.AluraFake.course.dto.NewCourseDTO;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.usecase.CourseUseCase;
 import br.com.alura.AluraFake.user.*;
+import br.com.alura.AluraFake.user.entity.Role;
+import br.com.alura.AluraFake.user.entity.User;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

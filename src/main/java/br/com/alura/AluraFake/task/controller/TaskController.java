@@ -1,4 +1,4 @@
-package br.com.alura.AluraFake.task;
+package br.com.alura.AluraFake.task.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -6,6 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.alura.AluraFake.task.dto.NewMultipleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewOpenTextTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewSingleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.usecase.TaskUseCase;
 import jakarta.validation.Valid;
 
 @RestController

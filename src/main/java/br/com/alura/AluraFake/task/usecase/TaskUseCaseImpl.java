@@ -1,4 +1,4 @@
-package br.com.alura.AluraFake.task;
+package br.com.alura.AluraFake.task.usecase;
 
 import java.util.HashSet;
 import java.util.List;
@@ -8,9 +8,17 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.alura.AluraFake.course.Course;
-import br.com.alura.AluraFake.course.CourseRepository;
-import br.com.alura.AluraFake.course.Status;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.course.entity.Status;
+import br.com.alura.AluraFake.course.repository.CourseRepository;
+import br.com.alura.AluraFake.task.dto.NewMultipleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewOpenTextTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewSingleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.OptionDTO;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.entity.TaskOption;
+import br.com.alura.AluraFake.task.repository.TaskOptionRepository;
+import br.com.alura.AluraFake.task.repository.TaskRepository;
 import br.com.alura.AluraFake.util.exceptions.ConflictException;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
@@ -19,13 +27,13 @@ import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
 import java.util.stream.Collectors;
 
 @Service
-public class TaskUseCase {
+public class TaskUseCaseImpl implements TaskUseCase {
 
     private final TaskRepository taskRepository;
     private final CourseRepository courseRepository;
     private final TaskOptionRepository taskOptionRepository;
 
-    public TaskUseCase(TaskRepository taskRepository, CourseRepository courseRepository, TaskOptionRepository taskOptionRepository) {
+    public TaskUseCaseImpl(TaskRepository taskRepository, CourseRepository courseRepository, TaskOptionRepository taskOptionRepository) {
         this.taskRepository = taskRepository;
         this.courseRepository = courseRepository;
         this.taskOptionRepository = taskOptionRepository;

@@ -1,10 +1,12 @@
-package br.com.alura.AluraFake.task;
+package br.com.alura.AluraFake.task.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
-import br.com.alura.AluraFake.course.Course;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.entity.Type;
 
 public class NewSingleChoiceTaskDTO extends NewOpenTextTaskDTO {
 

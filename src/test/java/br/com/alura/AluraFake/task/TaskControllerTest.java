@@ -18,7 +18,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.alura.AluraFake.config.TestSecurityConfig;
-import br.com.alura.AluraFake.course.Course;
+import br.com.alura.AluraFake.course.entity.Course;
+import br.com.alura.AluraFake.task.controller.TaskController;
+import br.com.alura.AluraFake.task.dto.NewMultipleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewOpenTextTaskDTO;
+import br.com.alura.AluraFake.task.dto.NewSingleChoiceTaskDTO;
+import br.com.alura.AluraFake.task.dto.OptionDTO;
+import br.com.alura.AluraFake.task.entity.Task;
+import br.com.alura.AluraFake.task.entity.Type;
+import br.com.alura.AluraFake.task.usecase.TaskUseCase;
 import br.com.alura.AluraFake.util.exceptions.ConflictException;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
 import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
