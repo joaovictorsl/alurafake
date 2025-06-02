@@ -16,15 +16,19 @@ import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
 import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
 
+import java.util.stream.Collectors;
+
 @Service
 public class TaskUseCase {
 
     private final TaskRepository taskRepository;
     private final CourseRepository courseRepository;
+    private final TaskOptionRepository taskOptionRepository;
 
-    public TaskUseCase(TaskRepository taskRepository, CourseRepository courseRepository) {
+    public TaskUseCase(TaskRepository taskRepository, CourseRepository courseRepository, TaskOptionRepository taskOptionRepository) {
         this.taskRepository = taskRepository;
         this.courseRepository = courseRepository;
+        this.taskOptionRepository = taskOptionRepository;
     }
 
     private void checkIfCourseCanReceiveTask(Optional<Course> course, String statement) throws RuntimeException {
@@ -54,10 +58,42 @@ public class TaskUseCase {
         }
     }
 
+    private List<TaskOption> mapOptionsToEntities(Task task, List<OptionDTO> optionDTOs) {
+        return optionDTOs.stream()
+            .map(optionDTO -> {
+                TaskOption option = new TaskOption();
+                option.setTask(task);
+                option.setOption(optionDTO.getOption());
+                option.setCorrect(optionDTO.getIsCorrect());
+                return option;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private void validateAndShiftTaskOrder(Long courseId, Integer newOrder) {
+        List<Task> tasks = taskRepository.findByCourseIdOrderByOrderAsc(courseId);
+        
+        if (newOrder > tasks.size() + 1) {
+            throw new InvalidArgumentException("Ordem inválida: não pode haver lacunas na sequência de tarefas");
+        }
+        
+        if (newOrder <= tasks.size()) {
+            List<Task> updatedTasks = tasks.stream()
+                .filter(task -> task.getOrder() >= newOrder)
+                .map(task -> {
+                    task.setOrder(task.getOrder() + 1);
+                    return task;
+                })
+                .collect(Collectors.toList());
+            taskRepository.saveAll(updatedTasks);
+        }
+    }
+
     @Transactional
     public Task createOpenTextTask(NewOpenTextTaskDTO newOpenTextTaskDTO) throws RuntimeException {
         Optional<Course> course = courseRepository.findById(newOpenTextTaskDTO.getCourseId());
         checkIfCourseCanReceiveTask(course, newOpenTextTaskDTO.getStatement());
+        validateAndShiftTaskOrder(newOpenTextTaskDTO.getCourseId(), newOpenTextTaskDTO.getOrder());
         return taskRepository.save(newOpenTextTaskDTO.toTask(course.get()));
     }
 
@@ -72,8 +108,13 @@ public class TaskUseCase {
 
         Optional<Course> course = courseRepository.findById(newSingleChoiceTaskDTO.getCourseId());
         checkIfCourseCanReceiveTask(course, newSingleChoiceTaskDTO.getStatement());
+        validateAndShiftTaskOrder(newSingleChoiceTaskDTO.getCourseId(), newSingleChoiceTaskDTO.getOrder());
 
-        return taskRepository.save(newSingleChoiceTaskDTO.toTask(course.get()));
+        Task task = taskRepository.save(newSingleChoiceTaskDTO.toTask(course.get()));
+        
+        List<TaskOption> options = mapOptionsToEntities(task, newSingleChoiceTaskDTO.getOptions());
+        taskOptionRepository.saveAll(options);
+        return task;
     }
 
     @Transactional
@@ -90,7 +131,12 @@ public class TaskUseCase {
 
         Optional<Course> course = courseRepository.findById(newMultipleChoiceTaskDTO.getCourseId());
         checkIfCourseCanReceiveTask(course, newMultipleChoiceTaskDTO.getStatement());
+        validateAndShiftTaskOrder(newMultipleChoiceTaskDTO.getCourseId(), newMultipleChoiceTaskDTO.getOrder());
 
-        return taskRepository.save(newMultipleChoiceTaskDTO.toTask(course.get()));
+        Task task = taskRepository.save(newMultipleChoiceTaskDTO.toTask(course.get()));
+        
+        List<TaskOption> options = mapOptionsToEntities(task, newMultipleChoiceTaskDTO.getOptions());
+        taskOptionRepository.saveAll(options);
+        return task;
     }
 }
