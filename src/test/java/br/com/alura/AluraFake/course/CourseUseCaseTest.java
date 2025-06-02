@@ -1,6 +1,9 @@
 package br.com.alura.AluraFake.course;
 
 import br.com.alura.AluraFake.task.TaskRepository;
+import br.com.alura.AluraFake.task.Task;
+import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
+import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
 import br.com.alura.AluraFake.user.*;
 import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
 import org.junit.jupiter.api.Test;
@@ -89,4 +92,96 @@ class CourseUseCaseTest {
         assertEquals(course2.getStatus(), result.get(1).getStatus());
         verify(courseRepository, times(1)).findAll();
     }
+
+    @Test
+    void publishCourse_should_publish_when_all_rules_satisfied() {
+        Long courseId = 1L;
+        User instructor = mock(User.class);
+        when(instructor.isInstructor()).thenReturn(true);
+        Course course = new Course("Test Course", "desc", instructor);
+        course.setStatus(Status.BUILDING);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        Task t1 = mock(Task.class);
+        when(t1.getType()).thenReturn(br.com.alura.AluraFake.task.Type.OPEN_TEXT);
+        when(t1.getOrder()).thenReturn(1);
+        Task t2 = mock(Task.class);
+        when(t2.getType()).thenReturn(br.com.alura.AluraFake.task.Type.SINGLE_CHOICE);
+        when(t2.getOrder()).thenReturn(2);
+        Task t3 = mock(Task.class);
+        when(t3.getType()).thenReturn(br.com.alura.AluraFake.task.Type.MULTIPLE_CHOICE);
+        when(t3.getOrder()).thenReturn(3);
+        when(taskRepository.findByCourseIdOrderByOrderAsc(courseId)).thenReturn(List.of(t1, t2, t3));
+
+        courseUseCase.publishCourse(courseId);
+        assertEquals(Status.PUBLISHED, course.getStatus());
+        assertNotNull(course.getPublishedAt());
+        verify(courseRepository).save(course);
+    }
+
+    @Test
+    void publishCourse_should_throw_when_course_not_found() {
+        when(courseRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> courseUseCase.publishCourse(99L));
+    }
+
+    @Test
+    void publishCourse_should_throw_when_status_not_building() {
+        Long courseId = 2L;
+        User instructor = mock(User.class);
+        when(instructor.isInstructor()).thenReturn(true);
+        Course course = new Course("Test", "desc", instructor);
+        course.setStatus(Status.PUBLISHED);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        assertThrows(InvalidStateException.class, () -> courseUseCase.publishCourse(courseId));
+    }
+
+    @Test
+    void publishCourse_should_throw_when_no_tasks() {
+        Long courseId = 3L;
+        User instructor = mock(User.class);
+        when(instructor.isInstructor()).thenReturn(true);
+        Course course = new Course("Test", "desc", instructor);
+        course.setStatus(Status.BUILDING);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        when(taskRepository.findByCourseIdOrderByOrderAsc(courseId)).thenReturn(List.of());
+        assertThrows(InvalidArgumentException.class, () -> courseUseCase.publishCourse(courseId));
+    }
+
+    @Test
+    void publishCourse_should_throw_when_missing_task_type() {
+        Long courseId = 4L;
+        User instructor = mock(User.class);
+        when(instructor.isInstructor()).thenReturn(true);
+        Course course = new Course("Test", "desc", instructor);
+        course.setStatus(Status.BUILDING);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        Task t1 = mock(Task.class);
+        when(t1.getType()).thenReturn(br.com.alura.AluraFake.task.Type.OPEN_TEXT);
+        Task t2 = mock(Task.class);
+        when(t2.getType()).thenReturn(br.com.alura.AluraFake.task.Type.SINGLE_CHOICE);
+        // Missing MULTIPLE_CHOICE
+        when(taskRepository.findByCourseIdOrderByOrderAsc(courseId)).thenReturn(List.of(t1, t2));
+        assertThrows(InvalidArgumentException.class, () -> courseUseCase.publishCourse(courseId));
+    }
+
+    @Test
+    void publishCourse_should_throw_when_task_order_not_continuous() {
+        Long courseId = 5L;
+        User instructor = mock(User.class);
+        when(instructor.isInstructor()).thenReturn(true);
+        Course course = new Course("Test", "desc", instructor);
+        course.setStatus(Status.BUILDING);
+        when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+        Task t1 = mock(Task.class);
+        when(t1.getType()).thenReturn(br.com.alura.AluraFake.task.Type.OPEN_TEXT);
+        when(t1.getOrder()).thenReturn(1);
+        Task t2 = mock(Task.class);
+        when(t2.getType()).thenReturn(br.com.alura.AluraFake.task.Type.SINGLE_CHOICE);
+        when(t2.getOrder()).thenReturn(3); // should be 2
+        Task t3 = mock(Task.class);
+        when(t3.getType()).thenReturn(br.com.alura.AluraFake.task.Type.MULTIPLE_CHOICE);
+        when(taskRepository.findByCourseIdOrderByOrderAsc(courseId)).thenReturn(List.of(t1, t2, t3));
+        assertThrows(InvalidArgumentException.class, () -> courseUseCase.publishCourse(courseId));
+    }
+
 }
