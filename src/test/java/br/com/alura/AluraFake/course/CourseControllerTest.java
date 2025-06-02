@@ -1,6 +1,7 @@
 package br.com.alura.AluraFake.course;
 
 import br.com.alura.AluraFake.user.*;
+import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,73 +22,42 @@ class CourseControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private UserRepository userRepository;
-    @MockBean
-    private CourseRepository courseRepository;
+    private CourseUseCase courseUseCase;
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
     void newCourseDTO__should_return_bad_request_when_email_is_invalid() throws Exception {
-
         NewCourseDTO newCourseDTO = new NewCourseDTO();
         newCourseDTO.setTitle("Java");
         newCourseDTO.setDescription("Curso de Java");
         newCourseDTO.setEmailInstructor("paulo@alura.com.br");
 
-        doReturn(Optional.empty()).when(userRepository)
-                .findByEmail(newCourseDTO.getEmailInstructor());
+        doThrow(new InvalidArgumentException("exception")).when(courseUseCase)
+                .createCourse(any(NewCourseDTO.class));
 
         mockMvc.perform(post("/course/new")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCourseDTO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field").value("emailInstructor"))
-                .andExpect(jsonPath("$.message").isNotEmpty());
-    }
-
-
-    @Test
-    void newCourseDTO__should_return_bad_request_when_email_is_no_instructor() throws Exception {
-
-        NewCourseDTO newCourseDTO = new NewCourseDTO();
-        newCourseDTO.setTitle("Java");
-        newCourseDTO.setDescription("Curso de Java");
-        newCourseDTO.setEmailInstructor("paulo@alura.com.br");
-
-        User user = mock(User.class);
-        doReturn(false).when(user).isInstructor();
-
-        doReturn(Optional.of(user)).when(userRepository)
-                .findByEmail(newCourseDTO.getEmailInstructor());
-
-        mockMvc.perform(post("/course/new")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newCourseDTO)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.field").value("emailInstructor"))
                 .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test
     void newCourseDTO__should_return_created_when_new_course_request_is_valid() throws Exception {
-
         NewCourseDTO newCourseDTO = new NewCourseDTO();
         newCourseDTO.setTitle("Java");
         newCourseDTO.setDescription("Curso de Java");
         newCourseDTO.setEmailInstructor("paulo@alura.com.br");
 
-        User user = mock(User.class);
-        doReturn(true).when(user).isInstructor();
-
-        doReturn(Optional.of(user)).when(userRepository).findByEmail(newCourseDTO.getEmailInstructor());
+        doReturn(mock(Course.class)).when(courseUseCase).createCourse(any(NewCourseDTO.class));
 
         mockMvc.perform(post("/course/new")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCourseDTO)))
                 .andExpect(status().isCreated());
 
-        verify(courseRepository, times(1)).save(any(Course.class));
+        verify(courseUseCase, times(1)).createCourse(any(NewCourseDTO.class));
     }
 
     @Test
@@ -98,7 +68,7 @@ class CourseControllerTest {
         Course hibernate = new Course("Hibernate", "Curso de hibernate", paulo);
         Course spring = new Course("Spring", "Curso de spring", paulo);
 
-        when(courseRepository.findAll()).thenReturn(Arrays.asList(java, hibernate, spring));
+        when(courseUseCase.getAllCourses()).thenReturn(Arrays.asList(new CourseListItemDTO(java), new CourseListItemDTO(hibernate), new CourseListItemDTO(spring)));
 
         mockMvc.perform(get("/course/all")
                         .contentType(MediaType.APPLICATION_JSON))
