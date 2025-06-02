@@ -17,10 +17,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.alura.AluraFake.course.Course;
-import br.com.alura.AluraFake.course.Status;
 import br.com.alura.AluraFake.util.exceptions.ConflictException;
 import br.com.alura.AluraFake.util.exceptions.EntityNotFoundException;
-import br.com.alura.AluraFake.util.exceptions.InvalidArgumentException;
 import br.com.alura.AluraFake.util.exceptions.InvalidStateException;
 
 import org.springframework.http.MediaType;
@@ -182,6 +180,122 @@ public class TaskControllerTest {
         when(taskUseCase.createOpenTextTask(any())).thenReturn(task);
         
         mockMvc.perform(MockMvcRequestBuilders.post("/task/new/opentext")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.statement").value("valid statement"))
+                .andExpect(jsonPath("$.order").value(1));
+    }
+
+    @Test
+    public void newSingleChoiceTask__should_return_not_found_when_course_does_not_exist() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", false));
+        NewSingleChoiceTaskDTO dto = new NewSingleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createSingleChoiceTask(any())).thenThrow(new EntityNotFoundException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/singlechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+    
+    @Test
+    public void newSingleChoiceTask__should_return_conflict_when_statement_is_duplicated() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", false));
+        NewSingleChoiceTaskDTO dto = new NewSingleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createSingleChoiceTask(any())).thenThrow(new ConflictException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/singlechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    public void newSingleChoiceTask__should_return_unprocessable_entity_when_course_is_not_in_building_status() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", false));
+        NewSingleChoiceTaskDTO dto = new NewSingleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createSingleChoiceTask(any())).thenThrow(new InvalidStateException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/singlechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+    
+    @Test
+    public void newSingleChoiceTask__should_return_created_when_successful() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", false));
+        NewSingleChoiceTaskDTO dto = new NewSingleChoiceTaskDTO(1L, "valid statement", 1, options);
+        Course course = mock(Course.class);
+        Task task = new Task("valid statement", 1, course, Type.SINGLE_CHOICE);
+        task.setId(1L);
+        
+        when(taskUseCase.createSingleChoiceTask(any())).thenReturn(task);
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/singlechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.statement").value("valid statement"))
+                .andExpect(jsonPath("$.order").value(1));
+    }
+
+    @Test
+    public void newMultipleChoiceTask__should_return_not_found_when_course_does_not_exist() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", true), new OptionDTO("option3", false));
+        NewMultipleChoiceTaskDTO dto = new NewMultipleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createMultipleChoiceTask(any())).thenThrow(new EntityNotFoundException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/multiplechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+    
+    @Test
+    public void newMultipleChoiceTask__should_return_conflict_when_statement_is_duplicated() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", true), new OptionDTO("option3", false));
+        NewMultipleChoiceTaskDTO dto = new NewMultipleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createMultipleChoiceTask(any())).thenThrow(new ConflictException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/multiplechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    public void newMultipleChoiceTask__should_return_unprocessable_entity_when_course_is_not_in_building_status() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", true), new OptionDTO("option3", false));
+        NewMultipleChoiceTaskDTO dto = new NewMultipleChoiceTaskDTO(1L, "valid statement", 1, options);
+        when(taskUseCase.createMultipleChoiceTask(any())).thenThrow(new InvalidStateException("exception"));
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/multiplechoice")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+    
+    @Test
+    public void newMultipleChoiceTask__should_return_created_when_successful() throws Exception {
+        List<OptionDTO> options = Arrays.asList(new OptionDTO("option1", true), new OptionDTO("option2", true), new OptionDTO("option3", false));
+        NewMultipleChoiceTaskDTO dto = new NewMultipleChoiceTaskDTO(1L, "valid statement", 1, options);
+        Course course = mock(Course.class);
+        Task task = new Task("valid statement", 1, course, Type.MULTIPLE_CHOICE);
+        task.setId(1L);
+        
+        when(taskUseCase.createMultipleChoiceTask(any())).thenReturn(task);
+        
+        mockMvc.perform(MockMvcRequestBuilders.post("/task/new/multiplechoice")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
